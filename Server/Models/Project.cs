@@ -8,6 +8,6 @@ public class Project
     public string TagsCsv { get; set; } = "";
     public string? RepoUrl { get; set; }
     public string? LiveUrl { get; set; }
-    public DateTime CreatedUts { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedUtc { get; set; }
 }

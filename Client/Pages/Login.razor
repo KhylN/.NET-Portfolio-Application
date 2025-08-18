@@ -6,13 +6,13 @@
 <EditForm Model="@model" OnValidSubmit="@DoLogin">
     <DataAnnotationsValidator />
     <div><label>Email</label><InputText @bind-Value="model.Email" /></div>
-    <div><label>Password</label><InputPassword @bind-Value="model.Password" /></div>
+    <div><label>Password</label><InputText @bind-Value="model.Password" type="Password" /></div>
     <button>Login</button>
 </EditForm>
 @if (error is not null) { <p style="color:red">@error</p> }
 
 @code {
-    private SkillSnap.Shared.LoginRequest model = new("", "");
+    private SkillSnap.Shared.LoginRequest model = new();
     private string? error;
     private async Task DoLogin()
     {

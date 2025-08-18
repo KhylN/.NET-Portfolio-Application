@@ -1,0 +1,22 @@
+@page "/login"
+@inject SkillSnap.Client.Services.ApiClient Api
+@inject NavigationManager Nav
+
+<h3>Login</h3>
+<EditForm Model="@model" OnValidSubmit="@DoLogin">
+    <DataAnnotationsValidator />
+    <div><label>Email</label><InputText @bind-Value="model.Email" /></div>
+    <div><label>Password</label><InputPassword @bind-Value="model.Password" /></div>
+    <button>Login</button>
+</EditForm>
+@if (error is not null) { <p style="color:red">@error</p> }
+
+@code {
+    private SkillSnap.Shared.LoginRequest model = new("", "");
+    private string? error;
+    private async Task DoLogin()
+    {
+        if (await Api.LoginAsync(model)) Nav.NavigateTo("/");
+        else error = "Invalid credentials";
+    }
+}

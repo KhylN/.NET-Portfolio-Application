@@ -1,0 +1,60 @@
+@page "/"
+@inject SkillSnap.Client.Services.ApiClient Api
+@using SkillSnap.Shared
+
+<h3>My Projects</h3>
+
+<input @bind="q" placeholder="Search..." />
+<button @onclick="Load">Search</button>
+
+@if (projects is null) { <p>Loading...</p> }
+else if (projects.Length == 0) { <p>No projects.</p> }
+else
+{
+    <ul>
+        @foreach (var p in projects)
+        {
+            <li @key="p.Id">
+                <b>@p.Title</b> — @p.Summary
+                @if (p.Tags.Any()) { <span> [@string.Join(", ", p.Tags)]</span> }
+                @if (!string.IsNullOrWhiteSpace(p.RepoUrl)) { <a href="@p.RepoUrl" target="_blank"> repo</a> }
+                @if (!string.IsNullOrWhiteSpace(p.LiveUrl)) { <a href="@p.LiveUrl" target="_blank"> live</a> }
+            </li>
+        }
+    </ul>
+}
+
+<h4>Add Project (Owner only)</h4>
+<EditForm Model="@create" OnValidSubmit="@HandleCreate">
+    <DataAnnotationsValidator />
+    <div><label>Title</label><InputText Value="create.Title" ValueChanged="@(v => create = create with { Title = v ?? string.Empty })" ValueExpression="() => create.Title" /></div>
+    <div><label>Summary</label><InputTextArea Value="create.Summary" ValueChanged="@(v => create = create with { Summary = v ?? string.Empty })" ValueExpression="() => create.Summary" /></div>
+    <div><label>Tags (comma-separated)</label><InputText @bind-Value="tagsCsv" /></div>
+    <div><label>Repo</label><InputText Value="create.RepoUrl" ValueChanged="@(v => create = create with { RepoUrl = string.IsNullOrWhiteSpace(v) ? null : v })" ValueExpression="() => create.RepoUrl" /></div>
+    <div><label>Live</label><InputText Value="create.LiveUrl" ValueChanged="@(v => create = create with { LiveUrl = string.IsNullOrWhiteSpace(v) ? null : v })" ValueExpression="() => create.LiveUrl" /></div>
+    <button>Add</button>
+</EditForm>
+@if (msg is not null) { <p>@msg</p> }
+
+@code {
+    private ProjectDto[]? projects;
+    private string? q;
+    private string? msg;
+    private ProjectCreateDto create = new("", "", Array.Empty<string>(), null, null);
+    private string tagsCsv = "";
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        projects = await Api.GetProjectsAsync(q);
+        StateHasChanged();
+    }
+
+    private async Task HandleCreate()
+    {
+        create = create with { Tags = (tagsCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) };
+        msg = await Api.CreateProjectAsync(create) ? "Created ✔" : "Create failed (need Owner role)";
+        await Load();
+    }
+}
